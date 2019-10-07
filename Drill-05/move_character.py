@@ -3,6 +3,7 @@ import math
 
 KPU_WIDTH, KPU_HEIGHT = 1280, 1024
 
+
 # 각도 계산
 def Cal_Degree(ax, bx, ay, by):
     w = ax - bx
@@ -15,6 +16,7 @@ def Cal_Degree(ax, bx, ay, by):
         angle = angle * -1
 
     return angle * 180.0 / math.pi
+
 
 # 마우스 이벤트
 def handle_events():
@@ -70,13 +72,17 @@ dir = 100
 
 while running:
     clear_canvas()
+
     kpu_ground.draw(KPU_WIDTH // 2, KPU_HEIGHT // 2)
     mouse.draw(x, y)
+
     character.clip_draw(frame * 100, dir, 100, 100, movex, movey)
+
     update_canvas()
+
     frame = (frame + 1) % 8
 
-    delay(0.02)
+    delay(0.03)
     handle_events()
 
     dirx = movex
@@ -86,8 +92,8 @@ while running:
     elif dirx > tempx:
         dir = 0
 
-    if (tempx - 3 <= movex and movex <= tempx + 3 and
-            tempy - 3 <= movey and movey <= tempy + 3 and bIsMove == True):
+    if (tempx - 3 <= movex <= tempx + 3 and
+            tempy - 3 <= movey <= tempy + 3 and bIsMove == True):
         bIsMove = False
 
     if bIsMove == True:
