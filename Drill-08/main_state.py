@@ -6,8 +6,7 @@ from pico2d import *
 
 import game_framework
 import title_state
-
-
+import pause_state
 
 name = "MainState"
 
@@ -16,6 +15,13 @@ grass = None
 font = None
 
 
+class Font:
+    def __init__(self):
+        self.image = load_image('paused.png')
+
+    def draw(self):
+        self.image.draw(400, 300)
+
 
 class Grass:
     def __init__(self):
@@ -23,7 +29,6 @@ class Grass:
 
     def draw(self):
         self.image.draw(400, 30)
-
 
 
 class Boy:
@@ -46,7 +51,7 @@ class Boy:
 
 
 def enter():
-    global boy,grass
+    global boy, grass
     boy = Boy()
     grass = Grass()
     pass
@@ -54,8 +59,8 @@ def enter():
 
 def exit():
     global boy, grass
-    del(boy)
-    del(grass)
+    del (boy)
+    del (grass)
     pass
 
 
@@ -74,6 +79,10 @@ def handle_events():
             game_framework.quit()
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             game_framework.change_state(title_state)
+
+        # P키를 누르면 pause_state push
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_p:
+            game_framework.push_state(pause_state)
     pass
 
 
@@ -88,8 +97,3 @@ def draw():
     boy.draw()
     update_canvas()
     pass
-
-
-
-
-
