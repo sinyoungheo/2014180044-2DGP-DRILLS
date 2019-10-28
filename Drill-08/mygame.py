@@ -1,10 +1,10 @@
 import game_framework
 
 # fill here
-import  game_framework
-import  pico2d
+import game_framework
+import pico2d
 
-import  start_state
+import start_state
 
 pico2d.open_canvas()
 
