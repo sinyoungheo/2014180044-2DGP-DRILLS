@@ -3,8 +3,8 @@ from pico2d import *
 import time
 import game_world
 
-PIXEL_PER_METER = (10.0 / 0.3)
-RUN_SPEED_KMPH = 40.0
+PIXEL_PER_METER = (10.0 / 0.4)
+RUN_SPEED_KMPH = 60.0
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
 RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
@@ -25,8 +25,8 @@ class Bird:
         self.current_time = time.time()
 
     def update(self):
-
-        print("Frame Time: %f sec" % game_framework.frame_time)
+        print("%f" %RUN_SPEED_PPS)
+        #print("Frame Time: %f sec" % game_framework.frame_time)
         self.x += self.velocity * game_framework.frame_time
         if self.dir == 1:
             self.velocity = RUN_SPEED_PPS
@@ -46,16 +46,16 @@ class Bird:
             self.frameX = 0
             self.frameY += 1
 
-        if self.frameY == 3:
+        if self.frameY == 2:
             self.frameY = 0
 
         pass
 
     def draw(self):
-        if self.dir == -1:
-            self.image.clip_composite_draw(self.frameX * 183, self.frameY * 168, 180, 166, 0.0, 'h', self.x, self.y,
-                                           100, 100)
-
         if self.dir == 1:
-            self.image.clip_draw(self.frameX * 183, self.frameY * 168, 183, 168, self.x, self.y, 100, 100)
+            self.image.clip_composite_draw(self.frameX * 183, self.frameY * 168, 180, 166, 0.0, 'h', self.x, self.y,
+                                           200, 200)
+
+        if self.dir == -1:
+            self.image.clip_draw(self.frameX * 183, self.frameY * 168, 183, 168, self.x, self.y, 200, 200)
         pass
