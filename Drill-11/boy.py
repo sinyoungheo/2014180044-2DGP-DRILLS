@@ -3,6 +3,7 @@ from pico2d import *
 from ball import Ball
 
 import game_world
+import main_state
 
 # Boy Run Speed
 PIXEL_PER_METER = (10.0 / 0.3)  # 10 pixel 30 cm
@@ -15,8 +16,6 @@ RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
 TIME_PER_ACTION = 0.5
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 FRAMES_PER_ACTION = 8
-
-
 
 # Boy Event
 RIGHT_DOWN, LEFT_DOWN, RIGHT_UP, LEFT_UP, SLEEP_TIMER, SPACE = range(6)
@@ -48,9 +47,17 @@ class IdleState:
 
     @staticmethod
     def exit(boy, event):
-        if event == SPACE:
-            boy.fire_ball()
-        pass
+        if event == SPACE and boy.Jump == False:
+            boy.Jump = True
+            boy.FirstX = boy.x
+            boy.FirstY = boy.y
+            boy.SecondX = boy.x
+            boy.SecondY = boy.y + 350
+            boy.ThirdX = boy.x
+            boy.ThirdY = 90
+            boy.isColi = False
+            boy.Init = False
+            pass
 
     @staticmethod
     def do(boy):
@@ -73,6 +80,7 @@ class RunState:
     def enter(boy, event):
         if event == RIGHT_DOWN:
             boy.velocity += RUN_SPEED_PPS
+
         elif event == LEFT_DOWN:
             boy.velocity -= RUN_SPEED_PPS
         elif event == RIGHT_UP:
@@ -83,14 +91,26 @@ class RunState:
 
     @staticmethod
     def exit(boy, event):
-        if event == SPACE:
-            boy.fire_ball()
+        if event == SPACE and boy.Jump == False:
+            boy.Jump = True
+            boy.FirstX = boy.x
+            boy.FirstY = boy.y
+            boy.SecondX = boy.x
+            boy.SecondY = boy.y + 350
+            boy.ThirdX = boy.x
+            boy.ThirdY = 90
+            boy.isColi = False
+            boy.Init = False
+            pass
 
     @staticmethod
     def do(boy):
-        #boy.frame = (boy.frame + 1) % 8
+        # boy.frame = (boy.frame + 1) % 8
         boy.frame = (boy.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 8
         boy.x += boy.velocity * game_framework.frame_time
+
+        if boy.isColi:
+            boy.Term += boy.velocity * game_framework.frame_time
         boy.x = clamp(25, boy.x, 1600 - 25)
 
     @staticmethod
@@ -118,20 +138,20 @@ class SleepState:
     @staticmethod
     def draw(boy):
         if boy.dir == 1:
-            boy.image.clip_composite_draw(int(boy.frame) * 100, 300, 100, 100, 3.141592 / 2, '', boy.x - 25, boy.y - 25, 100, 100)
+            boy.image.clip_composite_draw(int(boy.frame) * 100, 300, 100, 100, 3.141592 / 2, '', boy.x - 25, boy.y - 25,
+                                          100, 100)
         else:
-            boy.image.clip_composite_draw(int(boy.frame) * 100, 200, 100, 100, -3.141592 / 2, '', boy.x + 25, boy.y - 25, 100, 100)
-
-
-
-
+            boy.image.clip_composite_draw(int(boy.frame) * 100, 200, 100, 100, -3.141592 / 2, '', boy.x + 25,
+                                          boy.y - 25, 100, 100)
 
 
 next_state_table = {
-    IdleState: {RIGHT_UP: RunState, LEFT_UP: RunState, RIGHT_DOWN: RunState, LEFT_DOWN: RunState, SLEEP_TIMER: SleepState, SPACE: IdleState},
+    IdleState: {RIGHT_UP: RunState, LEFT_UP: RunState, RIGHT_DOWN: RunState, LEFT_DOWN: RunState,
+                SLEEP_TIMER: SleepState, SPACE: IdleState},
     RunState: {RIGHT_UP: IdleState, LEFT_UP: IdleState, LEFT_DOWN: IdleState, RIGHT_DOWN: IdleState, SPACE: RunState},
     SleepState: {LEFT_DOWN: RunState, RIGHT_DOWN: RunState, LEFT_UP: RunState, RIGHT_UP: RunState, SPACE: IdleState}
 }
+
 
 class Boy:
 
@@ -147,20 +167,33 @@ class Boy:
         self.cur_state = IdleState
         self.cur_state.enter(self, None)
 
+        self.Jump = False
+        self.FirstX, self.FirstY = 0, 0
+        self.SecondX, self.SecondY = 0, 0
+        self.ThirdX, self.ThirdY = 0, 0
+        self.t = 0
+        self.isColi = False
+        self.Term = 0
+        self.Brick = main_state.brick
+        self.Init = False
+
     def get_bb(self):
         # fill here
-        return 0, 0, 0, 0
+        return self.x - 15, self.y - 45, self.x + 15, self.y + 45
 
-
-    def fire_ball(self):
-        ball = Ball(self.x, self.y, self.dir * RUN_SPEED_PPS * 10)
-        game_world.add_object(ball, 1)
-
+    def Initialize_Boy(self):
+        self.Jump = False
+        self.t = 0
 
     def add_event(self, event):
         self.event_que.insert(0, event)
 
     def update(self):
+        if self.isColi is False:
+            self.y -= 300 * game_framework.frame_time
+        if self.isColi is True:
+            self.x = self.Brick.x + self.Term
+            self.y = self.Brick.y + 50
         self.cur_state.do(self)
         if len(self.event_que) > 0:
             event = self.event_que.pop()
@@ -168,14 +201,21 @@ class Boy:
             self.cur_state = next_state_table[self.cur_state][event]
             self.cur_state.enter(self, event)
 
+        if self.Jump:
+            self.y = (1 - self.t) ** 2 * self.FirstY + (
+                    1 - self.t) * self.t * 2 * self.SecondY + self.t ** 2 * self.ThirdY
+            self.t += game_framework.frame_time * 1
+            if self.t >= 1:
+                self.t = 0
+                self.Jump = False
+
     def draw(self):
         self.cur_state.draw(self)
         self.font.draw(self.x - 60, self.y + 50, '(Time: %3.2f)' % get_time(), (255, 255, 0))
-        #fill here
-
+        # fill here
+        draw_rectangle(*self.get_bb())
 
     def handle_event(self, event):
         if (event.type, event.key) in key_event_table:
             key_event = key_event_table[(event.type, event.key)]
             self.add_event(key_event)
-
