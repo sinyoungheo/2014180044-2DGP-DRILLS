@@ -13,30 +13,42 @@ import ranking_state
 name = "MainState"
 
 
-def collide(a, b):
+def Collide(a, b):
     # fill here
     left_a, bottom_a, right_a, top_a = a.get_bb()
     left_b, bottom_b, right_b, top_b = b.get_bb()
 
-    if left_a > right_b: return False
-    if right_a < left_b: return False
-    if top_a < bottom_b: return False
-    if bottom_a > top_b: return False
+    if left_a > right_b:
+        return False
+
+    if right_a < left_b:
+        return False
+
+    if top_a < bottom_b:
+        return False
+
+    if bottom_a > top_b:
+        return False
 
     return True
+
 
 boy = None
 zombies = None
 
+
 def enter():
     # game world is prepared already in world_build_state
     global boy, zombies
+
     boy = world_build_state.get_boy()
     zombies = world_build_state.get_zombie()
     pass
 
+
 def exit():
     game_world.clear()
+
 
 def pause():
     pass
@@ -60,12 +72,19 @@ def handle_events():
 
 
 def update():
+    global zombies
+    global boy
+
     for game_object in game_world.all_objects():
         game_object.update()
+
+    zombie_lst = game_world.get_zombie()
+
     for zombie in zombies:
-        if collide(boy, zombie):
+        if Collide(boy, zombie):
             game_framework.push_state(ranking_state)
 
+    pass
 
 
 def draw():
@@ -73,9 +92,3 @@ def draw():
     for game_object in game_world.all_objects():
         game_object.draw()
     update_canvas()
-
-
-
-
-
-

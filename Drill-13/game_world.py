@@ -5,6 +5,9 @@ import pickle
 objects = [[],[]]
 
 
+def get_zombie():
+    return objects[1]
+
 def add_object(o, layer):
     objects[layer].append(o)
 
